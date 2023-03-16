@@ -21,13 +21,26 @@
 <!--    </com.google.android.material.appbar.AppBarLayout>-->
 
     <Button
-        android:id="@+id/button_first"
+        android:id="@+id/button_connect"
         android:layout_width="120dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="140dp"
+        android:layout_marginStart="80dp"
         android:layout_marginTop="600dp"
         android:layout_marginEnd="162dp"
-        android:text="@string/next"
+        android:text="@string/connect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextWebsocketIP" />
+
+    <Button
+        android:id="@+id/button_disconnect"
+        android:layout_width="144dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="210dp"
+        android:layout_marginTop="600dp"
+        android:layout_marginEnd="162dp"
+        android:text="@string/disconnect"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,7 +48,7 @@
 
     <EditText
         android:id="@+id/editTextWebsocketIP"
-        android:layout_width="254dp"
+        android:layout_width="276dp"
         android:layout_height="50dp"
         android:layout_marginStart="78dp"
         android:layout_marginTop="540dp"
@@ -43,6 +56,8 @@
         android:ems="10"
         android:hint="@string/websocket_ip"
         android:inputType="textPersonName"
+        app:layout_anchor="@+id/editTextWebsocketIP"
+        app:layout_anchorGravity="top|center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"

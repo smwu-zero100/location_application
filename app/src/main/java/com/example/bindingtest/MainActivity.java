@@ -41,7 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView uriInput;
     private TextView logBox;
-    private Button inputButton;
+    private Button connectButton;
+    private Button disconnectButton;
 
 
     @Override
@@ -53,11 +54,20 @@ public class MainActivity extends AppCompatActivity {
 
         uriInput = (TextView) findViewById(R.id.editTextWebsocketIP);
         logBox = (TextView) findViewById(R.id.textViewLogBox);
-        inputButton = (Button) findViewById(R.id.button_first);
-        inputButton.setOnClickListener(new View.OnClickListener(){
+        connectButton = (Button) findViewById(R.id.button_connect);
+        disconnectButton = (Button)findViewById(R.id.button_disconnect);
+
+        connectButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
                 connectWebSocket(uriInput.getText().toString());
+            }
+        });
+
+        disconnectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mWebsocketClient.close();
             }
         });
 
@@ -97,10 +107,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void startLocationUpdates() {
 
-        mLocationRequest = LocationRequest.create()
-                .setInterval(UPDATE_INTERVAL)
-                .setFastestInterval(FASTEST_INTERVAL)
-                .setPriority(Priority.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+                .setMinUpdateIntervalMillis(500)
+                .setMaxUpdateDelayMillis(1000)
+                .build();
+
+//        mLocationRequest = LocationRequest.create()
+//                .setInterval(50)
+//                .setFastestInterval(10)
+//                .setPriority(Priority.PRIORITY_HIGH_ACCURACY);
         LocationCallback locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -114,10 +129,14 @@ public class MainActivity extends AppCompatActivity {
                     double longitude = location.getLongitude();
                     double heading = location.getBearing(); //getBearingAccuracyDegrees();
 
+
                     if (mWebsocketClient != null && mWebsocketClient.isOpen()) {
-                        String message = latitude + ", " + longitude + ", " + heading;
-                        logBox.setText(message + logBox.getText().toString() + "\n");
+                        String message = "location, " + latitude + "," + longitude + "," + heading ;
+                        // logBox.setText(latitude + ", " + longitude + ", " + heading + "\n" + logBox.getText().toString());
+                        // Log.i(TAG, message);
                         mWebsocketClient.send(message);
+                    } else{
+                        Log.i(TAG, "##################### if 문 안들어감 ############### ");
                     }
                 }
             }
