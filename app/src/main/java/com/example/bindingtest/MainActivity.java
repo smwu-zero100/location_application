@@ -62,14 +62,24 @@ public class MainActivity extends AppCompatActivity {
         connectButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
-                connectWebSocket(uriInput.getText().toString());
+                if(mWebsocketClient == null || !mWebsocketClient.isOpen()){
+                    connectWebSocket(uriInput.getText().toString());
+                }
+                else{
+                    Log.i(TAG, "websocket already open!");
+                }
             }
         });
 
         disconnectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mWebsocketClient.close();
+                if(mWebsocketClient != null || mWebsocketClient.isOpen()){
+                    mWebsocketClient.close();
+                }
+                else{
+                    Log.i(TAG, "websocket closed!");
+                }
             }
         });
 
@@ -128,19 +138,15 @@ public class MainActivity extends AppCompatActivity {
     public void startLocationUpdates() {
 
         mLocationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
-                .setMinUpdateIntervalMillis(500)
-                .setMaxUpdateDelayMillis(1000)
+                .setMinUpdateIntervalMillis(FASTEST_INTERVAL)
+                .setMaxUpdateDelayMillis(UPDATE_INTERVAL)
                 .build();
 
-//        mLocationRequest = LocationRequest.create()
-//                .setInterval(50)
-//                .setFastestInterval(10)
-//                .setPriority(Priority.PRIORITY_HIGH_ACCURACY);
         LocationCallback locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
-                if (locationResult != null && locationResult.getLastLocation() != null) {
+                if (locationResult != null && locationResult.getLastLocation() != null && mWebsocketClient != null && mWebsocketClient.isOpen()) {
                     Location currentLocation = locationResult.getLastLocation();
                     Log.i(TAG, "Location Update : " + currentLocation.toString());
 
@@ -153,15 +159,13 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     lastLocation = currentLocation;
+                    String message = "location, " + latitude + "," + longitude + "," + heading ;
+                    logBox.setText(latitude + ", " + longitude + ", " + heading + "\n" + logBox.getText().toString());
+                    //Log.i(TAG, message);
+                    mWebsocketClient.send(message);
 
-                    if (mWebsocketClient != null && mWebsocketClient.isOpen()) {
-                        String message = "location, " + latitude + "," + longitude + "," + heading ;
-                        logBox.setText(latitude + ", " + longitude + ", " + heading + "\n" + logBox.getText().toString());
-                        //Log.i(TAG, message);
-                        mWebsocketClient.send(message);
-                    } else{
-                        Log.i(TAG, "##################### if 문 안들어감 ############### ");
-                    }
+                } else{
+                    Log.e(TAG, "Location/Websocket Error!");
                 }
             }
         };
