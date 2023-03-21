@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private Button connectButton;
     private Button disconnectButton;
 
+    Location lastLocation = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +107,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public double getHeading(Location from, Location to){
+        double lat1 = Math.toRadians(from.getLatitude());
+        double lon1 = Math.toRadians(from.getLongitude());
+        double lat2 = Math.toRadians(to.getLatitude());
+        double lon2 = Math.toRadians(to.getLongitude());
+
+        double x = Math.cos(lat2) * Math.sin(lon2 - lon1);
+        double y = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+
+
+        double heading = Math.toDegrees(Math.atan2(x, y));
+        if (heading < 0) {
+            heading += 360;
+        }
+        Log.i("TAG", "from : " + lat1 + lon1 + "\nto : " + lat2 + lon2 + "\n heading : " + heading);
+        return heading;
+    }
+
     public void startLocationUpdates() {
 
         mLocationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
@@ -120,20 +140,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
-
                 if (locationResult != null && locationResult.getLastLocation() != null) {
-                    Location location = locationResult.getLastLocation();
-                    Log.i(TAG, "Location Update : " + location.toString());
+                    Location currentLocation = locationResult.getLastLocation();
+                    Log.i(TAG, "Location Update : " + currentLocation.toString());
 
-                    double latitude = location.getLatitude();
-                    double longitude = location.getLongitude();
-                    double heading = location.getBearing(); //getBearingAccuracyDegrees();
+                    double latitude = currentLocation.getLatitude();
+                    double longitude = currentLocation.getLongitude();
+                    double heading = 0.0; //getBearingAccuracyDegrees();
 
+                    if(lastLocation != null){
+                        heading = getHeading(lastLocation, currentLocation);
+                    }
+
+                    lastLocation = currentLocation;
 
                     if (mWebsocketClient != null && mWebsocketClient.isOpen()) {
                         String message = "location, " + latitude + "," + longitude + "," + heading ;
-                        // logBox.setText(latitude + ", " + longitude + ", " + heading + "\n" + logBox.getText().toString());
-                        // Log.i(TAG, message);
+                        logBox.setText(latitude + ", " + longitude + ", " + heading + "\n" + logBox.getText().toString());
+                        //Log.i(TAG, message);
                         mWebsocketClient.send(message);
                     } else{
                         Log.i(TAG, "##################### if 문 안들어감 ############### ");
